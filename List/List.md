@@ -338,3 +338,168 @@ public:
 };
 ```
 
+
+
+## 206 反转链表
+
+**题目：**
+
+给你单链表的头节点 `head` ，请你反转链表，并返回反转后的链表。
+
+**提示：**
+
+- 链表中节点的数目范围是 `[0, 5000]`
+- `-5000 <= Node.val <= 5000`
+
+**思路：**
+
+- 双指针法
+- 递归法（从前往后递归）
+- 递归法（从后往前递归）
+
+解法一：双指针法
+
+- 创建一个prev指针指向当前节点的前一个节点
+- 创建当前指针cur
+- 创建一个临时指针tmp指向当前指针的下一个指针
+  - 这是由于需要改变当前指针`cur`的指向，所以需要保存它的下一个节点位置
+
+​	
+
+```cpp
+ListNode* reverseList( ListNode* head) {
+	ListNode* cur = head;//初始化当前指针
+    ListNode* prev = NULL;//初始化当前指针的前一个指针，即假设尾哨兵，NULL
+    ListNode* tmp = NULL;
+    while (cur) {
+        tmp = cur->next;//保存下一节点地址
+        prev = cur;//改变节点方向
+        cur = tmp;//转向下一节点
+    }
+    return prev;
+    //需要注意的是，最后退出循环时，cur为NULL，指向的假设的尾哨兵节点NULL，不存在，当实际的尾节点为prev
+    //因此最后返回值为prev
+}
+```
+
+解法二：递归法（从前往后递归）
+
+> 实际就是双指针法，不过写成了递归形式
+
+```cpp
+ListNode* reverse (ListNode* cur, ListNode* prev) {
+    if (cur==NULL) return prev;
+    ListNode* tmp = cur->next;
+    cur->next = prev;
+    prev = cur;
+    reverse(tmp, prev);
+}
+
+
+ListNode* reverseList(ListNode* head) {
+	ListNode* prev = NULL;
+    return reverse(head, prev)
+}
+
+```
+
+解法三：递归法（从后往前法）
+
+- 首先判断边界条件
+  - 链表为空
+  - 当前指针已到末尾
+  - return 当前指针
+- 将指针以递归的方式指向末节点，返回最终的last指针
+- 递归反转节点方向
+
+```cpp
+ListNode* reverseList(ListNode* head) {
+	if (head==NULL || head->next == NULL) retrun head;
+    ListNode* last = reverseList(head->next);
+    head->next->next = head;//反转节点方向
+    head->next = NULL;
+    return last;
+}
+```
+
+
+
+## 24 两两交换链表中的节点
+
+**题目：**
+
+给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。==你必须在不修改节点内部的值的情况下完成本题（即，只能进行节点交换）。==
+
+**提示：**
+
+- 链表中节点的数目在范围 `[0, 100]` 内
+- `0 <= Node.val <= 100`
+
+**思路：**
+
+- 迭代法，创建头节点哨兵，使用三次改变方向来完成交换 `-1->2->1->3`
+
+- 递归法，不创建头节点，通过递归返回`2->1->`的后面节点
+
+解法一：
+
+```cpp
+ListNode* swapPairs(ListNode* head) {
+        //尝试使用双指针法进行求解
+        //当前指针和前指针
+        //前进步数为2
+
+        if (!head) return head;
+
+        ListNode* header = new ListNode(-1);
+        header->next = head;
+        ListNode* cur = header;
+
+        while (cur->next!=NULL && cur->next->next != NULL) {
+            //即链表为偶数
+            ListNode* next1 = cur->next;         //保存当前节点的下个节点
+            ListNode* next3 = cur->next->next->next;   //保存当前节点的下下个节点
+
+            //开始交换相邻节点位置
+            cur->next = cur->next->next ; //-1节点的下一节点指向2
+            cur->next->next = next1;    //2节点指向1
+            cur->next->next->next = next3;        // 1节点指向3
+            cur = cur->next->next; //当前节点向前走两步
+
+        }//此时要么剩余一个尾节点有值，要么没有剩余节点
+
+        head = header->next;//重新定义头节点
+        delete header;
+        
+        return  head;
+```
+
+解法二：递归法
+
+- 先判断递归终止条件
+  - 即当前节点为空或当前节点的下一节点为空，返回当前节点
+- 开始递归，每次递归返回的节点作为`head->next->next`的节点
+  - 注意：此时的head为最终返回的head值，而不是原head值
+  - 递归输入为head的第三个节点
+  - 这是最重要的一步：`head->next = swapPairs(tmp->next);`
+
+```cpp
+ListNode* swapPairs(ListNode* head) {
+		//递归的终止条件
+		if(head == NULL || head->next == NULL) {
+			return head;
+		}
+		//假设链表是 1->2->3->4
+		//这句就先保存节点2
+		ListNode* tmp = head->next;
+    
+		//继续递归，处理节点3->4
+		//当递归结束返回后，就变成了4->3
+		//于是head节点就指向了4，变成1->4->3
+		head->next = swapPairs(tmp->next);//这是最重要的一步
+    
+		//将2节点指向1
+		tmp->next = head;
+		return tmp;
+```
+

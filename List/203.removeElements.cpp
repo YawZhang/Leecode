@@ -83,7 +83,23 @@ void printList(ListNode* head) {
 
 
 int main() {
+    vector<int> a = {1,2,2,3,4,5};
+    int val = 2;
+
+    ListNode* head = new ListNode();
     
+    if ( a.size() > 1 ){
+        head->val = a[0];
+    }
+    ListNode* cur = head;
+
+    
+    if (a.size() > 1) {
+        for ( int i=1; i < a.size(); i++) {
+            cur->next = new ListNode (a[i]);
+            cur = cur->next;
+        }
+    }
 
     Solution S ;
     ListNode* ans = S.removeElements(head, val);
