@@ -503,3 +503,160 @@ ListNode* swapPairs(ListNode* head) {
 		return tmp;
 ```
 
+
+
+## 160 链表相交
+
+**题目：**
+
+给你两个单链表的头节点 `headA` 和 `headB` ，请你找出并返回两个单链表相交的起始节点。如果两个链表不存在相交节点，返回 `null` 。
+
+![image-20230319224827893](List.assets/image-20230319224827893.png)
+
+**提示：**
+
+- `listA` 中节点数目为 `m`
+
+- `listB` 中节点数目为 `n`
+- `1 <= m, n <= 3 * 104`
+- `1 <= Node.val <= 10`
+- `0 <= skipA <= m`
+- `0 <= skipB <= n`
+
+- 如果 `listA` 和 `listB` 没有交点，`intersectVal` 为 `0`
+
+- 如果 `listA` 和 `listB` 有交点，`intersectVal == listA[skipA] == listB[skipB]`
+
+**进阶：**你能否设计一个时间复杂度 `O(m + n)` 、仅用 `O(1)` 内存的解决方案？
+
+**思路：**
+
+> 链表相交的前提是，相交节点及后面节点指针相同
+
+- 尾端对齐，从短链表head开始遍历后续节点
+
+```cpp
+ListNode* getIntersectionNode(ListNode* headA, ListNode headB) {
+	int lenA = 0; int lenB = 0;
+    ListNode* curA = headA;
+    ListNode* curB = headB;
+    //计算链表长度
+    while( curA ) {
+        lenA++;
+        curA = curA->next;
+    }
+    while( curB ) {
+        lenB++;
+        curB = curB->next;
+    } 
+    
+    curA = headA;
+    curB = headB;
+    //将长链表放在上面A，短链表放在下面B
+    if (lenA < lenB) {
+        swap(lenA, lenB);
+        swap(curA, curB);
+    }
+    int Gap = lenA -lenB;
+    while(Gap--) {
+        curA = curA->next;
+    }//此时curA和curB对齐
+    
+    while(curA!=NULL) {
+        if (curA == curB ) return curA;//找到相同节点，立即返回
+        curA = curA->next;
+        curB = curB->next;
+    }
+    return NULL;//没有相同节点，返回NULL
+    
+    
+}
+```
+
+
+
+## 142 环形链表②
+
+**题目：**
+
+给定一个链表的头节点  `head` ，返回链表开始入环的第一个节点。 *如果链表无环，则返回 `null`。*
+
+如果链表中有某个节点，可以通过连续跟踪 `next` 指针再次到达，则链表中存在环。 为了表示给定链表中的环，评测系统内部使用整数 `pos` 来表示链表尾连接到链表中的位置（**索引从 0 开始**）。如果 `pos` 是 `-1`，则在该链表中没有环。**注意：`pos` 不作为参数进行传递**，仅仅是为了标识链表的实际情况。
+
+**不允许修改** 链表
+
+**提示：**
+
+- 链表中节点的数目范围在范围 `[0, 104]` 内
+
+- `-105 <= Node.val <= 105`
+
+- `pos` 的值为 `-1` 或者链表中的一个有效索引
+
+**思路：**
+
+- 暴力迭代，将当前节点与之前的每个节点都做一次比较，时间复杂度$O(n^2)$
+- 快慢指针，先找环相遇节点，再找环起始节点
+
+解法1:暴力迭代
+
+- 双节点指针，一个指向当前指针cur，一个cur2指向head
+- 一一比较，cur->next = cur2;
+
+```
+    ListNode *detectCycle(ListNode *head) {
+        if (head==NULL) return head;//边界条件
+
+        ListNode* cur = head;
+        ListNode* tail = head->next;
+        while( tail != NULL ) {
+            while(cur!=tail)
+            {   
+                if (cur == tail->next) return cur;
+                cur = cur->next;
+            }
+            if (cur == tail->next ) return cur;
+            tail = tail->next;
+            cur = head;
+        } 
+
+        return NULL;
+
+    }
+```
+
+解法2：快慢指针法
+
+- 快慢指针，快指针走两步， 慢指针走一步，总能在环内节点相遇，在环内相当于快指针在一步一步靠近慢指针，可能会转n圈
+- 环内相遇节点，`slow==fast`
+  - 此时`x`为相遇节点长度，`y`为环内相遇节点数(`x->相遇节点的节点数`),`z`为环内剩余节点数
+  - ` x + y = x + y + n*(y + z)`
+  - `2*(x + y) =  x + y + n*(y + z) -> x = (n-1)*(y+z) + z`
+  - 假设`n=1, x = z`，此时设相遇节点为`index1`， 头节点为`index2`，两指针相遇时便是`z`的长度
+
+- 当`n>1` 同样成立，因为`n>1`的情况时`index1`多走了`n-1`圈而已，不影响`index2`的计数
+
+```cpp
+ListNode *detectCycle(ListNode *head) { 
+        ListNode* fast = head;
+        ListNode* slow = head;
+        while ( fast!=NULL && fast->next!=NULL) {
+            fast = fast->next->next;
+            slow = slow->next;
+
+            if (fast == slow) {
+                ListNode* index1 = head;
+                ListNode* index2 = slow;
+                while ( index1 != index2 ) {
+                    index1 = index1->next;
+                    index2 = index2->next;
+                }
+                return index1;
+            } 
+        }
+        return NULL;
+    }
+```
+
+
+
