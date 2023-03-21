@@ -65,9 +65,9 @@ std::unordered_map 底层实现为哈希表，std::map 和std::multimap 的底�
 
 **题目：**
 
-给定两个字符串 `*s*` 和 `*t*` ，编写一个函数来判断 `*t*` 是否是 `*s*` 的字母异位词。
+给定两个字符串 *`s`* 和 *`t`* ，编写一个函数来判断 *`t`*  是否是  *`s`* 的字母异位词。
 
-**注意：**若 `*s*` 和 `*t*` 中每个字符出现的次数都相同，则称`*s*` 和 `*t*` 互为字母异位词。
+**注意：**若 *`s`* 和  *`t`*  中每个字符出现的次数都相同，则称 *`s`* 和 *`t`* 互为字母异位词。
 
 **提示：**
 
@@ -183,6 +183,196 @@ public:
             }
         }
         return vector<int> (result_set.begin(), result_set.end());//将unordered_set结果类型转换成vector输出
+
+    }
+};
+```
+
+
+
+## 202 快乐数
+
+**题目：**
+
+编写一个算法来判断一个数 `n` 是不是快乐数。
+
+**「快乐数」** 定义为：
+
+- 对于一个正整数，每一次将该数替换为它每个位置上的数字的平方和。
+- 然后重复这个过程直到这个数变为 1，也可能是==**无限循环**== 但始终变不到 1。
+
+- 如果这个过程 **结果为** 1，那么这个数就是快乐数。
+
+如果 `n` 是 *快乐数* 就返回 `true` ；不是，则返回 `false` 。
+
+**提示：**
+
+- `1 <= n <= 231 - 1`
+
+**思路：**
+
+- 关键点在于无限循环，即sum可能会重复
+- sum存在哈希表中，若sum重复，则n不是快乐数
+- 当sum=1时，n为快乐数
+
+```cpp
+class Solution {
+public:
+    //向下取余法求每位数
+    int getSum(int n) {
+        int sum = 0;
+        while(n>0) {
+            int cur = n%10;//个位数
+            n /= 10;
+            sum += cur*cur;
+        }
+        return sum;
+    }
+    
+    bool isHappy(int n) {
+        int sum = 0;
+        unordered_set<int> result;
+
+        while (1) {//一直求sum，直到出现循环或者找到快乐数
+            sum = getSum(n);//不断求sum
+            if ( sum == 1 ) return true;//若sum=1，则n为快乐数，立即退出
+
+            if (result.find(sum) != result.end()) {//若sum发生循环，即重复出现在哈希表中，则n不是快乐数，立即退出
+                return false;
+            }
+            else result.insert(sum);//否则，将未出现的sum保存到哈希表中
+            n = sum;//重新赋值n，继续求和
+        }    
+    }
+    
+};
+
+```
+
+
+
+## 1 两数之和
+
+**题目：**
+
+给定一个整数数组 `nums` 和一个整数目标值 `target`，请你在该数组中找出 **和为目标值** *`target`* 的那 **两个** 整数，并返回它们的数组下标。
+
+你可以假设每种输入只会对应一个答案。但是，数组中同一个元素在答案里不能重复出现。
+
+你可以按任意顺序返回答案。
+
+**提示：**
+
+- `2 <= nums.length <= 104`
+- `-109 <= nums[i] <= 109`
+- `-109 <= target <= 109`
+- **只会存在一个有效答案**
+
+**思路：**
+
+- 暴力求解，两层循环找等于target的元素a和元素b
+- 哈希表法，保存访问过的元素，找与target相差的匹配对元素
+
+解法一：暴力求解：
+
+过程就不写了，大概就是双层循环，然后return {i, j}
+
+
+
+解法二：哈希表法
+
+- 由于不仅需要查找元素，还要查找元素下标，因此用map最为方便
+- map中存放的是访问过的元素，且其中元素无法构成与target的匹配对( 即$a+b=target$)
+- map的作用是查找下一个元素的匹配对，若存在匹配对，立即返回，否则，遍历结束返回空数组
+
+```cpp
+
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        
+        unordered_map<int, int> num_hash;
+
+        for (int i = 0; i < nums.size(); i++) {
+            int s = target - nums[i];//在哈希表中找是否存在匹配的s，与nums[i]构成target
+            if (num_hash.find(s) != num_hash.end()) {
+                //若找到了s，则立即返回两个数的下标
+                return {num_hash.find(s)->second, i};
+            }
+            num_hash.insert(pair<int, int> (nums[i], i));//s不在哈希表中，则立即插入遍历过的元素nums[i]
+        }
+        return {};
+    }
+};
+```
+
+**重点：**
+
+本题其实有四个重点：
+
+- 为什么会想到用哈希表
+  - 要在数组中找元素，即用哈希表来查找效率最高
+- 哈希表为什么用map
+  - 不仅要查找元素，又要查找元素下标，set和vector只能存一个值，map可以存放键值对
+- 本题map是用来存什么的
+  - map存以访问过的元素，从而在下一个元素来查找之前的元素是否有与之匹配的元素，二者只和=target
+- map中的key和value用来存什么的
+  - key存元素，value存下标，这是因为计算过程中要的是元素值，而最终返回的是元素下标
+
+## 454 四数相加II
+
+**题目:**
+
+给你四个整数数组 `nums1`、`nums2`、`nums3` 和 `nums4` ，数组长度都是 `n` ，请你计算有多少个元组 `(i, j, k, l)` 能满足：
+
+- `0 <= i, j, k, l < n`
+- `nums1[i] + nums2[j] + nums3[k] + nums4[l] == 0`
+
+**提示：**
+
+- `n == nums1.length`
+
+- `n == nums2.length`
+- `n == nums3.length`
+- `n == nums4.length`
+
+- `1 <= n <= 200`
+- `-228 <= nums1[i], nums2[i], nums3[i], nums4[i] <= 228`
+
+**思路：**
+
+- 暴力迭代，四层循环逐个寻找，count++，时间复杂度$O(n^4)$
+- 构建哈希表，将多个数组分2组求和，将其中一组放入哈希表，查询另一组数组和
+
+解法二：哈希表查找法
+
+- 根据题意，需要再四个数组中查找四个元素之和为0，故首先想到哈希表来查找
+- 由于需要考虑重复元素之和为0的情况，因此考虑用map来构建哈希表，key放一组数组之和，value为数组之和的重复次数
+- 如何对多个数组分组，需要考虑时间复杂度情况，4个数组22分组，时间复杂度为$2*O(n^2)$，而11分组时间复杂度为$O(n^3)$，因此考虑22分组
+
+```cpp
+class Solution {
+public:
+    int fourSumCount(vector<int>& A, vector<int>& B, vector<int>& C, vector<int>& D) {
+        unordered_map<int, int> hash_sum;
+        int count = 0;
+        //第一次循环统计前两个数组
+        for(int a: A) {
+            for (int b: B) {
+                hash_sum[a+b]++;//将ab之和存放在哈希表中，key为其和，value为出现的次数
+            }
+        }
+
+        //第二次循环，查找后两个数组之和
+        for (int c: C) {
+            for (int d: D) {
+                if (hash_sum.find(0 - (c+d)) != hash_sum.end() ) {
+                    count += hash_sum[0-(c+d)];
+                }
+            }
+        }
+
+        return count ;
 
     }
 };
