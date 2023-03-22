@@ -378,3 +378,247 @@ public:
 };
 ```
 
+
+
+## 383 赎金信
+
+**题目：**
+
+给你两个字符串：`ransomNote` 和 `magazine` ，判断 `ransomNote` 能不能由 `magazine` 里面的字符构成。
+
+如果可以，返回 `true` ；否则返回 `false` 。
+
+`magazine` 中的每个字符只能在 `ransomNote` 中使用一次。
+
+**提示：**
+
+- `1 <= ransomNote.length, magazine.length <= 105`
+- ==`ransomNote` 和 `magazine` 由小写英文字母组成==
+
+**思路：**
+
+- 暴力迭代法
+- 哈希表法
+  - map（空间复杂度高，需要做哈希函数映射）
+  - 数组（**字符串均有小写字母组成**，数组空间有限，效率高）
+
+解法二：map构建哈希表法
+
+> 由于要记录字符出现次数，我第一反应是用map，没有看到提示中字符串只包含小写字符
+>
+> 其次，题目中主要需要查找的是的字符出现的次数，而没有说要保存字符，因此直接用数组是最方便的，而用map由于其底层需要实现哈希函数及维护哈希表，是十分费时的，当数据量上来时差异显著
+
+- 查找`ransomNote`在`magazine`中是否出现，因此先保存`magazine`再逐个比较`ransomNote`
+  - 若哈希表中能找到`randomNote`中的字符，则出现次数减一，直至遍历完`ransomNote`
+  - 如果找不到，即哈希表中字符次数为负数了，查找失败，退出
+
+```cpp
+class Solution {
+public:
+    bool canConstruct(string ransomNote, string magazine) {
+        unordered_map<char, int> umap;
+        for (char m : magazine) {
+            if (umap.find(m) != umap.end()) {
+                umap[m]++;
+            }
+            else {
+                umap[m] = 1;
+            }
+        }
+
+        for (char r : ransomNote) {
+            if (umap.find(r) != umap.end()) {
+                if (umap[r] == 0 ){
+                    return false;
+                }
+                umap[r]--;
+            }
+
+            else return false;
+            
+        }
+        return true;
+        
+    }
+};
+
+```
+
+解法三：数组构建哈希表法
+
+构建思想和map相同，不过需要将初始化足够长的数组，将小写字母一一映射到哈希表中
+
+```cpp
+class Solution {
+public:
+    bool canConstruct(string r, string m) {
+        //字符串均有小写字母组成
+        int nhash[26] = {0};
+
+        if (r.size() > m.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < m.size(); i++) {
+            nhash[m[i]-'a']++;
+        }
+        for (int i = 0; i < r.size(); i++) {
+            nhash[r[i]-'a']--;
+            
+            if (nhash[r[i]-'a'] < 0 ) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+
+
+## 15 三数之和
+
+**题目：**
+
+给你一个整数数组 `nums `，判断是否存在三元组` [nums[i]`, `nums[j]`,` nums[k]]` 满足` i != j`、`i != k` 且` j != k` ，同时还满足 `nums[i] + nums[j] + nums[k] == 0 `，请你返回所有和为 `0` 且不重复的三元组。
+
+**注意：**答案中不可以包含重复的三元组。
+
+**提示：**
+
+- `3 <= nums.length <= 3000`
+- `-105 <= nums[i] <= 105`
+
+**思路：**
+
+- 哈希表
+- 双指针法
+
+解法二：双指针法
+
+- 由于返回的是值而不是下表，因此可以对数组进行排序，以此来方便求和与找值
+- ==**剪枝去重**==的过程需**着重注意**
+  - 当数组最小数大于目标值，且最小数为非负数时，需要剪枝
+  - 去除因第一个数导致的重复解
+- 双指针法求最后两个数之和
+  - 当sum大于目标值，最右边指针向内收缩
+  - 当sum小于目标值，倒数第二个数指针向内收缩
+  - 当sum等于目标值时，保存元素结果，去除由这两个数导致的重复解，最后两个指针同时向内收缩
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> results;
+
+        sort(nums.begin(), nums.end());//先对数组进行排序，方便用双指针进行移动求值
+
+        for (int i = 0; i < nums.size(); i++) {
+            // 1级剪枝
+            if (nums[i] > 0) return results;//排完序后，如果最小数都大于0，直接退出
+
+            // 去除第一个数a导致的重复解
+            if (i > 0 && nums[i] == nums[i-1]) {
+                continue;
+            }
+
+            int left = i+1;
+            int right = nums.size() - 1;
+            while( left < right ) {
+                if ((nums[i] + nums[left] + nums[right]) > 0) right--;//大了，c指针收缩
+                else if ((nums[i] + nums[left] + nums[right]) < 0) left++;//小了，b指针收缩
+                else {
+                    //反之，a+b+c = 0;找到了三元组，开始对三元组中的b和c去重
+                    results.push_back(vector<int>{nums[i] , nums[left] , nums[right]});
+                    while(left < right && nums[right] == nums[right-1]) right--;//c去重，右指针向内收缩
+                    while (left < right && nums[left] == nums[left+1]) left++;//b去重，左指针向内收缩
+                    
+                    // 找到答案，两个指针同时向内收缩
+                    right--; left++;
+                }
+            }
+            cout << "hello world! " << endl;
+        }
+        return results;
+
+
+    }
+```
+
+
+
+## 18 四数之和
+
+**题目：**
+
+给你一个由 `n` 个整数组成的数组 `nums` ，和一个目标值 `target` 。请你找出并返回满足下述全部条件且**不重复**的四元组 `[nums[a], nums[b], nums[c],nums[d]]` （若两个四元组元素一一对应，则认为两个四元组重复）：
+
+- `0 <= a, b, c, d < n`
+- `a`、`b`、`c` 和 `d` **互不相同**
+
+- `nums[a] + nums[b] + nums[c] + nums[d] == target`
+
+你可以按 **任意顺序** 返回答案。
+
+**提示：**
+
+- `1 <= nums.length <= 200`
+- `-109 <= nums[i] <= 109`
+- `-109 <= target <= 10`
+- 由于nums最大值为$10^9$，因此求和时整数会溢出，需要用long long强制转型
+
+**思路：**
+
+- 暴力迭代，四层循环，*不知道会不会超时*
+- 双指针法，比三数之和多一层循环，且剪枝操作更加复杂
+
+解法二：双指针法
+
+- 首先目标值可正可负，1级剪枝时需要使数组最小数为非负数且大于目标值才可，2级剪枝同理
+  - 剪枝更加快捷的方式是判断当确定了前几个数后，直接使后面的数取最大，若都小于目标值，则该层直接剪枝
+- 前两个数都需要去重，均去除因第一个数导致的重复解
+- 内部双指针与三数之和相同，不再赘述
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int t) {
+        vector<vector<int>> results;
+        if (nums.size()<4) return results;
+
+        sort(nums.begin(), nums.end());
+        int nlen = nums.size();
+        int e1 = nlen - 3;
+        int e2 = nlen - 2;
+        for (int i = 0; i < e1; i++) {
+            // 1级剪枝
+            if ((nums[i] >=0 && nums[i]> t)) break;//当t为正数,数组最小数都为正
+
+            if (i > 0 && nums[i] == nums[i-1]) continue;//a去重
+
+            for( int j = i+1; j < e2; j++ ) {
+                // 2级剪枝
+                if (nums[i]  + nums[j] > t && nums[i] + nums[j] > 0) break;
+
+                if (j > i+1 && nums[j] == nums[j-1] ) continue;//b去重
+
+                int left = j+1;
+                int right = nlen-1;
+                while  (left < right) {
+                    if ( (long) nums[i] + nums[j] + nums[left] + nums[right] > t) right--;
+                    else if ( (long)nums[i] + nums[j] + nums[left] + nums[right] < t) left++; 
+                    else {
+                        results.push_back(vector<int>{nums[i] , nums[j] , nums[left] , nums[right]});
+                        while(left < right && nums[right]==nums[right-1]) right--;
+                        while(left < right && nums[left]==nums[left+1]) left++; 
+                        right--;
+                        left++;
+                    }
+                }
+            }
+        }
+        return results;
+    }
+};
+```
+
