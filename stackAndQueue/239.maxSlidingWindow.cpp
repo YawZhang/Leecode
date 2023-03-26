@@ -15,7 +15,6 @@ public:
             _size--;
         }
     }
-
     void push(int x) {
         // 如果要插入的值比前面的值都大，就将前面的值全部pop,这样保证整个队列单调递减
         while ( !mQueue.empty() && mQueue.back() < x) {
@@ -24,9 +23,7 @@ public:
         }
         mQueue.push_back(x);
         _size++;
-        
     }
-
     int front () {
         return mQueue.front();
     }
@@ -46,7 +43,6 @@ public:
             i++;
         }
         res.push_back(que.front());
-
         for (; i < nums.size(); i++) {
             que.pop(nums[i-k]);// 弹出窗口首元素
             que.push(nums[i]);// 将下一个元素插入队列中
